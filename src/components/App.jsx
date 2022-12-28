@@ -8,7 +8,7 @@ import Loader from './Loader';
 import axios from 'axios';
 
 const App = () => {
-  const [imgSearchQuery, setImgSearchQuery] = useState('second');
+  const [imgSearchQuery, setImgSearchQuery] = useState('');
   const [images, setImages] = useState([]);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -25,24 +25,30 @@ const App = () => {
   };
 
   useEffect(() => {
-    setIsLoading(true);
+    if (imgSearchQuery === '') {
+      return;
+    }
+    const controller = new AbortController();
 
     async function fetchToSearch() {
       try {
-        const r = await axios({
-          url: 'https://pixabay.com/api/',
-          params: {
-            key: '30996005-ea40810ea94cfe1a7fe206b35',
-            q: imgSearchQuery,
-            image_type: 'photo',
-            orientation: 'horizontal',
-            safesearch: true,
-            per_page: 12,
-            page: page,
+        setIsLoading(true);
+        const r = await axios(
+          {
+            url: 'https://pixabay.com/api/',
+            params: {
+              key: '30996005-ea40810ea94cfe1a7fe206b35',
+              q: imgSearchQuery,
+              image_type: 'photo',
+              orientation: 'horizontal',
+              safesearch: true,
+              per_page: 12,
+              page: page,
+            },
           },
-        });
-        if (r.data.hits.length) {
-          console.log(imgSearchQuery);
+          { signal: controller.signal }
+        );
+        if (r.data.hits.length > 0) {
           return setImages(prev => [...prev, ...r.data.hits]);
         } else {
           return toast.error(
@@ -56,9 +62,10 @@ const App = () => {
       }
     }
     fetchToSearch();
-    // return () => {
-    //   second
-    // }
+
+    return () => {
+      controller.abort();
+    };
   }, [imgSearchQuery, page]);
 
   const loadMore = event => {

@@ -15,22 +15,21 @@ const ImageGallery = ({ images, onLoadMore }) => {
     setShowModal(prevState => !prevState);
     setIsLoading(prevState => !prevState);
   };
-  const openModalImg = id => {
+  const openModalImg = (largeImageURL, tag) => {
     toggleModal();
-    const image = images.find(img => img.id === id);
-    setModalImg(image.largeImageURL);
-    setTag(image.tag);
+    setModalImg(largeImageURL);
+    setTag(tag);
   };
   return (
     <>
       {isLoading && <Loader />}
       <ImageGalleryList>
-        {images.map(({ id, webformatURL, tag }) => (
+        {images.map(({ webformatURL, tag, largeImageURL }) => (
           <ImageGalleryItem
-            key={id}
+            key={webformatURL}
             webformatURL={webformatURL}
             tag={tag}
-            onClick={() => openModalImg(id)}
+            onClick={() => openModalImg(largeImageURL, tag)}
           />
         ))}
       </ImageGalleryList>
