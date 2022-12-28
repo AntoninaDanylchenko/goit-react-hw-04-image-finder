@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import { useState, useEffect } from 'react';
 import Searchbar from './Searchbar';
 import ImageGallery from './ImageGallery';
 import { ToastContainer, toast } from 'react-toastify';
@@ -7,76 +7,77 @@ import { MainApp } from './App.styled';
 import Loader from './Loader';
 import axios from 'axios';
 
-class App extends Component {
-  state = {
-    imgSearch: '',
-    images: [],
-    error: '',
-    isLoading: false,
-    page: 1,
+const App = () => {
+  const [imgSearchQuery, setImgSearchQuery] = useState('second');
+  const [images, setImages] = useState([]);
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [page, setPage] = useState(1);
+
+  const searchFormSubmit = imgSearch => {
+    setImgSearchQuery(imgSearch);
+    reset();
+  };
+  const reset = () => {
+    setImages([]);
+    setError('');
+    setPage(1);
   };
 
-  searchFormSubmit = imgSearch => {
-    this.setState({ imgSearch, images: [], page: 1, error: '' });
-  };
-  async componentDidUpdate(_, prevState) {
-    if (
-      prevState.imgSearch !== this.state.imgSearch ||
-      prevState.page !== this.state.page
-    ) {
-      this.setState({ isLoading: true });
+  useEffect(() => {
+    setIsLoading(true);
+
+    async function fetchToSearch() {
       try {
         const r = await axios({
           url: 'https://pixabay.com/api/',
           params: {
             key: '30996005-ea40810ea94cfe1a7fe206b35',
-            q: this.state.imgSearch,
+            q: imgSearchQuery,
             image_type: 'photo',
             orientation: 'horizontal',
             safesearch: true,
             per_page: 12,
-            page: this.state.page,
+            page: page,
           },
         });
-
         if (r.data.hits.length) {
-          return this.setState(prev => ({
-            images: [...prev.images, ...r.data.hits],
-          }));
+          console.log(imgSearchQuery);
+          return setImages(prev => [...prev, ...r.data.hits]);
         } else {
           return toast.error(
             'Sorry, there are no images matching your search query.'
           );
         }
       } catch (error) {
-        this.setState({ error });
+        setError(error);
       } finally {
-        this.setState({ isLoading: false });
+        setIsLoading(false);
       }
     }
-  }
-  loadMore = event => {
+    fetchToSearch();
+    // return () => {
+    //   second
+    // }
+  }, [imgSearchQuery, page]);
+
+  const loadMore = event => {
     event.preventDefault();
-    this.setState(pr => ({
-      page: pr.page + 1,
-    }));
+    setPage(pr => pr + 1);
   };
 
-  render() {
-    const { images, isLoading, error } = this.state;
-    return (
-      <>
-        <Searchbar onSearch={this.searchFormSubmit} />
-        <MainApp>
-          {isLoading && <Loader />}
-          {error && <h2>{error}</h2>}
-          {images.length !== 0 && (
-            <ImageGallery images={images} onLoadMore={this.loadMore} />
-          )}
-          <ToastContainer />
-        </MainApp>
-      </>
-    );
-  }
-}
+  return (
+    <>
+      <Searchbar onSearchProp={searchFormSubmit} />
+      <MainApp>
+        {isLoading && <Loader />}
+        {error && <h2>{error}</h2>}
+        {images.length !== 0 && (
+          <ImageGallery images={images} onLoadMore={loadMore} />
+        )}
+        <ToastContainer />
+      </MainApp>
+    </>
+  );
+};
 export default App;

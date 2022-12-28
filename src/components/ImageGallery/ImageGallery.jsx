@@ -1,58 +1,47 @@
-import React, { Component } from 'react';
+import { useState } from 'react';
 import ImageGalleryItem from '../ImageGalleryItem';
 import LoadMore from 'components/LoadMore';
 import { ImageGalleryList } from './ImageGallery.styled';
 import Modal from '../Modal';
 import Loader from '../Loader';
 
-class ImageGallery extends Component {
-  state = {
-    showModal: false,
-    modalImg: '',
-    tag: '',
-    isLoading: false,
-  };
-  toggleModal = () => {
-    this.setState(prevState => ({
-      showModal: !prevState.showModal,
-      isLoading: !prevState.isLoading,
-    }));
-  };
-  openModalImg = id => {
-    this.toggleModal();
-    const image = this.props.images.find(img => img.id === id);
-    this.setState({
-      modalImg: image.largeImageURL,
-      tag: image.tag,
-    });
-  };
+const ImageGallery = ({ images, onLoadMore }) => {
+  const [showModal, setShowModal] = useState(false);
+  const [modalImg, setModalImg] = useState('');
+  const [tag, setTag] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  render() {
-    const { images, onLoadMore } = this.props;
-    const { isLoading, modalImg, tag, showModal } = this.state;
-
-    return (
-      <>
-        {isLoading && <Loader />}
-        <ImageGalleryList>
-          {images.map(({ id, webformatURL, tag }) => (
-            <ImageGalleryItem
-              key={id}
-              webformatURL={webformatURL}
-              tag={tag}
-              onClick={() => this.openModalImg(id)}
-            />
-          ))}
-        </ImageGalleryList>
-        {images.length > 11 && <LoadMore onClick={onLoadMore} />}
-        {showModal && (
-          <Modal onClose={this.toggleModal}>
-            <img src={modalImg} alt={tag} />
-          </Modal>
-        )}
-      </>
-    );
-  }
-}
+  const toggleModal = () => {
+    setShowModal(prevState => !prevState);
+    setIsLoading(prevState => !prevState);
+  };
+  const openModalImg = id => {
+    toggleModal();
+    const image = images.find(img => img.id === id);
+    setModalImg(image.largeImageURL);
+    setTag(image.tag);
+  };
+  return (
+    <>
+      {isLoading && <Loader />}
+      <ImageGalleryList>
+        {images.map(({ id, webformatURL, tag }) => (
+          <ImageGalleryItem
+            key={id}
+            webformatURL={webformatURL}
+            tag={tag}
+            onClick={() => openModalImg(id)}
+          />
+        ))}
+      </ImageGalleryList>
+      {images.length > 11 && <LoadMore onClick={onLoadMore} />}
+      {showModal && (
+        <Modal onClose={toggleModal}>
+          <img src={modalImg} alt={tag} />
+        </Modal>
+      )}
+    </>
+  );
+};
 
 export default ImageGallery;
