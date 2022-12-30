@@ -56,7 +56,7 @@ const App = () => {
           );
         }
       } catch (error) {
-        setError(error);
+        setError(error.message);
       } finally {
         setIsLoading(false);
       }
