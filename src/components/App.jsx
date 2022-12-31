@@ -5,7 +5,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { MainApp } from './App.styled';
 import Loader from './Loader';
-import axios from 'axios';
+import imagesListFetch from 'api/imagesApi';
 
 const App = () => {
   const [imgSearchQuery, setImgSearchQuery] = useState('');
@@ -33,23 +33,9 @@ const App = () => {
     async function fetchToSearch() {
       try {
         setIsLoading(true);
-        const r = await axios(
-          {
-            url: 'https://pixabay.com/api/',
-            params: {
-              key: '30996005-ea40810ea94cfe1a7fe206b35',
-              q: imgSearchQuery,
-              image_type: 'photo',
-              orientation: 'horizontal',
-              safesearch: true,
-              per_page: 12,
-              page: page,
-            },
-          },
-          { signal: controller.signal }
-        );
-        if (r.data.hits.length > 0) {
-          return setImages(prev => [...prev, ...r.data.hits]);
+        const r = await imagesListFetch(imgSearchQuery, page, controller);
+        if (r.length > 0) {
+          return setImages(prev => [...prev, ...r]);
         } else {
           return toast.error(
             'Sorry, there are no images matching your search query.'
